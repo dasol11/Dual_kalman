@@ -1,0 +1,5 @@
+names:
+- drone
+nc: 1
+train: C:/Users/qorwl/yolov5_py38/train.txt
+val: C:/Users/qorwl/yolov5_py38/val.txt

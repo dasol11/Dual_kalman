@@ -1,0 +1,5 @@
+names:
+- drone
+nc: 1
+train: dataset/train.txt
+val: dataset/val.txt
