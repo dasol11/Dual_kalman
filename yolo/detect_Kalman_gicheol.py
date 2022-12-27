@@ -198,7 +198,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
                 # 지난 프레임의 예측 값을 측정값으로 사용하여
                 # 칼만필터의 추정값을 계산
-                est_x_y = KF.update(Last_x_y)
+                est_x_y = KF.update([[xywh[0]], [xywh[1]]])
                 
                 # 칼만필터에 input 형태로 변형
                 Last_x_y = [[xywh[0]], [xywh[1]]]

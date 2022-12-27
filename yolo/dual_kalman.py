@@ -176,7 +176,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             imc = im0.copy() if save_crop else im0  # for save_crop
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
 
-            (X, Y) = IKF.predict()
+            (X1, Y1) = IKF.predict()
             (X2, Y2) = DKF.predict()
 
             if not len(det):
@@ -185,17 +185,17 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
                 if NF >= Threshold_false:
                     # 칼만필터로 예측된 값을 텐서 변환
-                    X = (torch.tensor(X, device="cuda")).view(-1)
-                    Y = (torch.tensor(Y, device="cuda")).view(-1)
+                    X = (torch.tensor(X1, device="cuda")).view(-1)
+                    Y = (torch.tensor(Y1, device="cuda")).view(-1)
                     # 예측 좌표와 이전 프레임의 값을 가져와 (1,6)의 텐서로 결합
                     xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
                     
                 else:
                     # 칼만필터로 예측된 값을 텐서 변환
-                    X2 = (torch.tensor(X2, device="cuda")).view(-1)
-                    Y2 = (torch.tensor(Y2, device="cuda")).view(-1)
+                    X = (torch.tensor(X2, device="cuda")).view(-1)
+                    Y = (torch.tensor(Y2, device="cuda")).view(-1)
                     # 예측 좌표와 이전 프레임의 값을 가져와 (1,6)의 텐서로 결합
-                    xywh = torch.cat([X2, Y2, Last_whcc[0:2]], dim=0).tolist()
+                    xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
                
                 
                 xyxy = (xywh2xyxy(torch.tensor(xywh, device="cuda").view(1, 4))).view(-1)
@@ -213,7 +213,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                 # 지난 프레임의 예측 값을 측정값으로 사용하여
                 # 칼만필터의 추정값을 계산
                 est_x_y = IKF.update(Last_x_y)
-                est_x_y2 = DKF.update([[xywh[0]], [xywh[1]]])
+                est_x_y2 = DKF.update(Last_x_y)
                 
                 # 칼만필터에 input 형태로 변형
                 Last_x_y = [[xywh[0]], [xywh[1]]]
