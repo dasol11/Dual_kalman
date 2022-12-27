@@ -179,11 +179,11 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                 NF += 1
                 
                 # 칼만필터로 예측된 값을 텐서 변환
-                X1 = (torch.tensor(X1, device="cuda")).view(-1)
-                Y1 = (torch.tensor(Y1, device="cuda")).view(-1)
+                X = (torch.tensor(X1, device="cuda")).view(-1)
+                Y = (torch.tensor(Y1, device="cuda")).view(-1)
                 
                 # 예측 좌표와 이전 프레임의 값을 가져와 (1,6)의 텐서로 결합
-                xywh = torch.cat([X1, Y1, Last_whcc[0:2]], dim=0).tolist()
+                xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
                 xyxy = (xywh2xyxy(torch.tensor(xywh, device="cuda").view(1, 4))).view(-1)
                 det = torch.cat([xyxy, Last_whcc[2:4]], dim=0).unsqueeze(0)
             else:
@@ -198,7 +198,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
                 # 지난 프레임의 예측 값을 측정값으로 사용하여
                 # 칼만필터의 추정값을 계산
-                est_x_y = KF.update([[xywh[0]], [xywh[1]]])
+                est_x_y = KF.update(Last_x_y)
                 
                 # 칼만필터에 input 형태로 변형
                 Last_x_y = [[xywh[0]], [xywh[1]]]

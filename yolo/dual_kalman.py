@@ -108,7 +108,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
     # 칼만 필터 불러오기(delta_t, Q, R)
     # Inferece Kalman Filter
-    IKF = KalmanFilter(0.1, 0.001, 1)
+    IKF = KalmanFilter(0.1, 0.001, 10)
     # Detection Kalman Filter
     DKF = KalmanFilter(0.1, 10, 0.01)
     
@@ -178,7 +178,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
             (X1, Y1) = IKF.predict()
             (X2, Y2) = DKF.predict()
-
+            
             if not len(det):
                 # YOLO가 예측을 못 할 경우 칼만필터로 예측
                 NF += 1
@@ -188,16 +188,15 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     X = (torch.tensor(X1, device="cuda")).view(-1)
                     Y = (torch.tensor(Y1, device="cuda")).view(-1)
                     # 예측 좌표와 이전 프레임의 값을 가져와 (1,6)의 텐서로 결합
-                    xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
+                    
                     
                 else:
                     # 칼만필터로 예측된 값을 텐서 변환
                     X = (torch.tensor(X2, device="cuda")).view(-1)
                     Y = (torch.tensor(Y2, device="cuda")).view(-1)
                     # 예측 좌표와 이전 프레임의 값을 가져와 (1,6)의 텐서로 결합
-                    xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
-               
                 
+                xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
                 xyxy = (xywh2xyxy(torch.tensor(xywh, device="cuda").view(1, 4))).view(-1)
                 det = torch.cat([xyxy, Last_whcc[2:4]], dim=0).unsqueeze(0)
             else:
@@ -213,7 +212,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                 # 지난 프레임의 예측 값을 측정값으로 사용하여
                 # 칼만필터의 추정값을 계산
                 est_x_y = IKF.update(Last_x_y)
-                est_x_y2 = DKF.update(Last_x_y)
+                est_x_y2 = DKF.update([[xywh[0]], [xywh[1]]])
                 
                 # 칼만필터에 input 형태로 변형
                 Last_x_y = [[xywh[0]], [xywh[1]]]
