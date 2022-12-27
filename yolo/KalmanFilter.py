@@ -67,6 +67,6 @@ class KalmanFilter(object):
 
         # 공분산 행렬 업데이트식
         self.P = (I - (K * self.H)) * self.P
-
+        
         return self.x[0:2]
 

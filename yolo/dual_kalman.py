@@ -110,7 +110,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     # Inferece Kalman Filter
     IKF = KalmanFilter(0.1, 0.001, 1)
     # Detection Kalman Filter
-    DKF = KalmanFilter(0.1, 1, 0.01)
+    DKF = KalmanFilter(0.1, 10, 0.01)
     
 
     NF = 0
@@ -185,10 +185,10 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
                 if NF >= Threshold_false:
                     # 칼만필터로 예측된 값을 텐서 변환
-                    X = (torch.tensor(X1, device="cuda")).view(-1)
-                    Y = (torch.tensor(Y1, device="cuda")).view(-1)
+                    X = (torch.tensor(X, device="cuda")).view(-1)
+                    Y = (torch.tensor(Y, device="cuda")).view(-1)
                     # 예측 좌표와 이전 프레임의 값을 가져와 (1,6)의 텐서로 결합
-                    xywh = torch.cat([X1, Y1, Last_whcc[0:2]], dim=0).tolist()
+                    xywh = torch.cat([X, Y, Last_whcc[0:2]], dim=0).tolist()
                     
                 else:
                     # 칼만필터로 예측된 값을 텐서 변환
@@ -229,7 +229,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     
                 # 높이와 너비값 저장
                 wh = (torch.tensor(xywh[2:4], device="cuda"))
-
+                
                 Last_whcc = torch.cat([wh, conf, clas], dim=0)
                 
                 # Yolo의 출력 형태로 텐서 길이로 변경
@@ -244,6 +244,8 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
                 if li is not None:
                     det = sum_tensor(li)
+                    
+                    
             if NF <= Threshold_fail:
 
 
